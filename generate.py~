@@ -19,8 +19,8 @@ def getCaptionsFromFilenames(dirPath, truncateIndexes=False):
     for filename in filenames:
         if truncateIndexes:
             caption = re.sub(r'^[0-9]+', "", filename)
-        caption = re.sub(r'\.(jpg|jpeg)', "", caption, flags=re.I)
-        caption = re.sub(r'[_]', " ", caption)
+        caption = re.sub(r'\.(jpg|jpeg)', "", filename, flags=re.I)
+        caption = re.sub(r'[_]', " ", filename)
         caption = "".join((caption[0].upper(), caption[1:]))
         captions[filename] = caption
     return captions
