@@ -17,8 +17,9 @@ def getCaptionsFromFilenames(dirPath, truncateIndexes=False):
     fileExtList=['.jpg', '.jpeg', '.JPG', '.JPEG']   
     filenames = [os.path.splitext(f)[0] for f in listDir(dirPath, fileExtList)]
     for filename in filenames:
+        caption = filename
         if truncateIndexes:
-            caption = re.sub(r'^[0-9]+', "", filename)
+            caption = re.sub(r'^[0-9]+', "", caption)
         caption = re.sub(r'\.(jpg|jpeg)', "", caption, flags=re.I)
         caption = re.sub(r'[_]', " ", caption)
         caption = "".join((caption[0].upper(), caption[1:]))
@@ -51,7 +52,7 @@ def getCatpionsFromFile(captionsFilePath, dirPath, withFilenames=True):
     return captions
 
     
-def resize_proportionally(filePath, max_height=720, max_width=0, out=None):
+def resize_proportionally(filePath, max_height=720, max_width=0, out=None, force=False):
         '''
         Resizes file from filepath to given max_height or max_width (if bth are given max_height is ignored).
         Second dimension is resized proportionaly yto the first one.
@@ -62,7 +63,7 @@ def resize_proportionally(filePath, max_height=720, max_width=0, out=None):
         im = Image.open(filePath)
         width =  im.size[0]
         height = im.size[1]
-        new_height = min(height, max_height)
+        new_height = min(height, max_height) if not force else max_height
         new_width = width
         if max_width:
             new_width =  min(width, max_width)
@@ -75,7 +76,7 @@ def resize_proportionally(filePath, max_height=720, max_width=0, out=None):
         return (new_width, new_height)
 
 
-def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG', '.JPEG'], galleryFilePath="gallery.xml", outDir=None):
+def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG', '.JPEG'], galleryFilePath="gallery.xml", outDir=None, force_resize=False):
     imgOutDir = os.path.join(outDir, "images")
     if not os.path.isdir(imgOutDir):
         os.makedirs(imgOutDir)
@@ -85,7 +86,7 @@ def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG'
         for filename in listDir(dirPath, fileExtList):           
             filePath = os.path.join(dirPath, filename)
             caption = captions.get(os.path.splitext(filename)[0], "")         
-            width, height = resize_proportionally(filePath, out=os.path.join(imgOutDir, filename))
+            width, height = resize_proportionally(filePath, out=os.path.join(imgOutDir, filename), force=force_resize)
             if filename == thumb:
                 resize_proportionally(filePath, max_width=300, out=os.path.join(outDir, 'thumb.jpg'))
             galleryFile.write('<image>\n')
@@ -115,6 +116,7 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--guess', help='Guess captions from filenames', action="store_true")
     parser.add_argument('-i', '--indexes', help='Truncate first digits from filename', action="store_true")
     parser.add_argument('-t', '--thumb', help='Name of a file whch will be used to generate thumbnail file', default="")
+    parser.add_argument('-r', '--forceresize', help='Force resize of images (even if originals are smaller than target"', action="store_true")
     
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3')
     args = parser.parse_args()
@@ -127,10 +129,10 @@ if __name__ == "__main__":
     for filename, caption in sorted(captionsDict.items(), key=lambda t: t[0]):
         print filename + " " + caption
     
-    outDir = args.out or args.dir
+    outDir = args.out or os.path.join(args.dir, "gallery/")
     if not os.path.isdir(outDir):
         os.makedirs(outDir)
-    process(args.dir, captions = captionsDict, thumb=args.thumb, galleryFilePath=os.path.join(args.out, "gallery.xml"), outDir=outDir)
+    process(args.dir, captions = captionsDict, thumb=args.thumb, galleryFilePath=os.path.join(outDir, "gallery.xml"), outDir=outDir, force_resize=args.forceresize)
     
     copyIncludes(outDir)
     
