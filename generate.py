@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #-*- coding: utf-8 -*-
 import os
 import re
@@ -59,6 +60,7 @@ def resize_proportionally(filePath, max_height=720, max_width=0, out=None, force
         Result image is written to "out" path or "file_path" if "out" is not given
         Returns width and height of the new image
         ''' 
+        import pdb;pdb.set_trace()
         out = out or filePath
         im = Image.open(filePath)
         width =  im.size[0]
@@ -76,7 +78,7 @@ def resize_proportionally(filePath, max_height=720, max_width=0, out=None, force
         return (new_width, new_height)
 
 
-def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG', '.JPEG'], galleryFilePath="gallery.xml", outDir=None, force_resize=False):
+def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG', '.JPEG'], galleryFilePath="gallery.xml", outDir=None, force_resize=False, max_height=720):
     imgOutDir = os.path.join(outDir, "images")
     if not os.path.isdir(imgOutDir):
         os.makedirs(imgOutDir)
@@ -86,7 +88,7 @@ def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG'
         for filename in listDir(dirPath, fileExtList):           
             filePath = os.path.join(dirPath, filename)
             caption = captions.get(os.path.splitext(filename)[0], "")         
-            width, height = resize_proportionally(filePath, out=os.path.join(imgOutDir, filename), force=force_resize)
+            width, height = resize_proportionally(filePath, out=os.path.join(imgOutDir, filename), force=force_resize, max_height=max_height)
             if filename == thumb:
                 resize_proportionally(filePath, max_width=300, out=os.path.join(outDir, 'thumb.jpg'))
             galleryFile.write('<image>\n')
@@ -117,6 +119,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--indexes', help='Truncate first digits from filename', action="store_true")
     parser.add_argument('-t', '--thumb', help='Name of a file whch will be used to generate thumbnail file', default="")
     parser.add_argument('-r', '--forceresize', help='Force resize of images (even if originals are smaller than target"', action="store_true")
+    parser.add_argument('-s', '--size', help='Target maximum image height', type=int, default=720)
     
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3')
     args = parser.parse_args()
@@ -132,7 +135,7 @@ if __name__ == "__main__":
     outDir = args.out or os.path.join(args.dir, "gallery/")
     if not os.path.isdir(outDir):
         os.makedirs(outDir)
-    process(args.dir, captions = captionsDict, thumb=args.thumb, galleryFilePath=os.path.join(outDir, "gallery.xml"), outDir=outDir, force_resize=args.forceresize)
+    process(args.dir, captions = captionsDict, thumb=args.thumb, galleryFilePath=os.path.join(outDir, "gallery.xml"), outDir=outDir, force_resize=args.forceresize, max_height=args.size)
     
     copyIncludes(outDir)
     
