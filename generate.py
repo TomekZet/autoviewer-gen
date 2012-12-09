@@ -60,7 +60,6 @@ def resize_proportionally(filePath, max_height=720, max_width=0, out=None, force
         Result image is written to "out" path or "file_path" if "out" is not given
         Returns width and height of the new image
         ''' 
-        import pdb;pdb.set_trace()
         out = out or filePath
         im = Image.open(filePath)
         width =  im.size[0]
