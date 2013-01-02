@@ -88,8 +88,9 @@ def process(dirPath, thumb="", captions={}, fileExtList=['.jpg', '.jpeg', '.JPG'
             filePath = os.path.join(dirPath, filename)
             caption = captions.get(os.path.splitext(filename)[0], "")         
             width, height = resize_proportionally(filePath, out=os.path.join(imgOutDir, filename), force=force_resize, max_height=max_height)
-            if filename == thumb:
+            if filename == thumb or thumb == '':
                 resize_proportionally(filePath, max_width=300, out=os.path.join(outDir, 'thumb.jpg'))
+                thumb = None
             galleryFile.write('<image>\n')
             galleryFile.write('\t<url>%s</url>\n' % os.path.join("images/", filename))
             galleryFile.write('\t<caption>%s</caption>\n' % caption)
